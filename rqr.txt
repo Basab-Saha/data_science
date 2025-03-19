@@ -1,0 +1,11 @@
+numpy
+pandas
+ipykernel
+requests 
+sqlalchemy 
+schedule 
+streamlit 
+psycopg2
+mysql-connector-python 
+pymysql
+python-dotenv
