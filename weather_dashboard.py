@@ -7,7 +7,7 @@ DB_URI = "postgresql://weather_db_owner:npg_23YnzyEIZTJD@ep-royal-unit-a81pyxdv-
 engine = create_engine(DB_URI)
 
 # Fetch latest weather data
-@st.cache_data(ttl=60)  # Auto refresh every 60 seconds
+@st.cache_data(ttl=5)  # Auto refresh every 60 seconds
 def fetch_weather_data_from_db():
     query = "SELECT * FROM weather_data ORDER BY timestamp DESC LIMIT 1"
     with engine.connect() as conn:
