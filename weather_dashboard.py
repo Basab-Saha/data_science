@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt 
 from sqlalchemy import create_engine
 
 # Database connection
@@ -19,6 +20,20 @@ def fetch_weather_data_from_db():
     """
     with engine.connect() as conn:
         df = pd.read_sql(query, conn)
+    return df
+
+# Fetch historical temperature data for a city
+def fetch_city_weather_history(city):
+    query = f"""
+        SELECT timestamp, temperature
+        FROM weather_data
+        WHERE city = '{city}'
+        ORDER BY timestamp ASC
+    """
+    with engine.connect() as conn:
+        df = pd.read_sql(query, conn)
+    df["timestamp"] = pd.to_datetime(df["timestamp"])  # Convert timestamp to datetime
+    df["temperature"] = df["temperature"] - 273.15  # Convert Kelvin to Celsius
     return df
 
 st.title("🌤 Live Multi-City Weather Dashboard")
@@ -42,6 +57,24 @@ if not latest_weather.empty:
             st.metric(label="🌪 Weather", value=f"{city_data['weather']}")
             st.metric(label="🌬 Wind Speed", value=f"{city_data['wind_speed']} m/s")
             st.write(f"🕒 Timestamp: {city_data['timestamp']}")
+
+            # Fetch historical temperature data for plotting
+            df_history = fetch_city_weather_history(city)
+
+            if not df_history.empty:
+                # 📊 Plot temperature trend
+                fig, ax = plt.subplots(figsize=(10, 5))
+                ax.plot(df_history["timestamp"], df_history["temperature"], marker="o", linestyle="-", color="b", label="Temperature (°C)")
+                ax.set_title(f"Temperature Trend in {city}")
+                ax.set_xlabel("Time")
+                ax.set_ylabel("Temperature (°C)")
+                ax.legend()
+                ax.grid(True)
+
+                # Display the plot
+                st.pyplot(fig)
+            else:
+                st.warning(f"No historical data available for {city}.")
 
 else:
     st.error("🚫 No weather data available yet.")
