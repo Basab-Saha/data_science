@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
 import os
+import pytz 
 
 # Load environment variables from .env
 load_dotenv()
@@ -18,13 +19,17 @@ engine = create_engine(DB_URI)
 def fetch_weather_data():
     response=requests.get(URL).json()
 
+    ist = pytz.timezone("Asia/Kolkata")
+    utc_now = datetime.utcnow()
+    local_time = utc_now.replace(tzinfo=pytz.utc).astimezone(ist)
+
     weather_data={
         "city":response["name"],
         "temperature":response["main"]["temp"],
         "humidity":response["main"]["humidity"],
         "weather":response["weather"][0]["description"],
         "wind_speed":response["wind"]["speed"],
-        "timestamp":datetime.now()
+        "timestamp": local_time.strftime('%Y-%m-%d %H:%M:%S')
     }
 
     df=pd.DataFrame([weather_data])
